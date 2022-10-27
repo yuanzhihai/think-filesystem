@@ -3,8 +3,8 @@ declare( strict_types = 1 );
 
 namespace yzh52521\filesystem\driver;
 
-use League\Flysystem\PhpseclibV2\SftpAdapter;
-use League\Flysystem\PhpseclibV2\SftpConnectionProvider;
+use League\Flysystem\PhpseclibV3\SftpAdapter;
+use League\Flysystem\PhpseclibV3\SftpConnectionProvider;
 use League\Flysystem\UnixVisibility\PortableVisibilityConverter;
 use yzh52521\filesystem\Driver;
 
@@ -22,7 +22,7 @@ class Sftp extends Driver
             $this->config['timeout'] ?? false, // use agent (optional, default: false)
             30, // timeout (optional, default: 10)
             10, // max tries (optional, default: 4)
-            null // connectivity checker (must be an implementation of 'League\Flysystem\PhpseclibV2\ConnectivityChecker' to check if a connection can be established (optional, omit if you don't need some special handling for setting reliable connections)
+            null,
         ),$this->config['root'], // root path (required)
             PortableVisibilityConverter::fromArray( [
                 'file' => [

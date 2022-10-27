@@ -29,11 +29,4 @@ class Obs extends Driver
         return new ObsAdapter( $client,$this->config['bucket'],$this->config['prefix'],null,null,$config['options'] );
     }
 
-    public function url(string $path): string
-    {
-        if (isset( $this->config['url'] )) {
-            return $this->concatPathToUrl( $this->config['url'],$path );
-        }
-        return parent::url( $path );
-    }
 }
