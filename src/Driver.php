@@ -9,7 +9,7 @@ use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\FilesystemException;
 use League\Flysystem\Local\LocalFilesystemAdapter;
 use League\Flysystem\PathPrefixer;
-use League\Flysystem\PhpseclibV2\SftpAdapter;
+use League\Flysystem\PhpseclibV3\SftpAdapter;
 use League\Flysystem\StorageAttributes;
 use League\Flysystem\UnableToCopyFile;
 use League\Flysystem\UnableToCreateDirectory;
@@ -27,6 +27,7 @@ use think\Cache;
 use think\File;
 use think\file\UploadedFile;
 use think\helper\Arr;
+use voku\helper\ASCII;
 
 /**
  * Class Driver
@@ -240,6 +241,17 @@ abstract class Driver
     public function download($path,$name = null,array $headers = [])
     {
         return $this->response( $path,$name,$headers,'attachment' );
+    }
+
+    /**
+     * Convert the string to ASCII characters that are equivalent to the given name.
+     *
+     * @param string $name
+     * @return string
+     */
+    protected function fallbackName($name)
+    {
+        return str_replace( '%','',ASCII::to_ascii( $name,'en' ) );
     }
 
     /**
