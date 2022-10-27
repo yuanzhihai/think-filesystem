@@ -71,8 +71,8 @@ abstract class Driver
             $this->prefixer = new PathPrefixer( $this->prefixer->prefixPath( $config['prefix'] ),$separator );
         }
 
-        $adapter          = $this->createAdapter();
-        $this->filesystem = $this->createFilesystem( $adapter,$this->config );
+        $this->adapter          = $this->createAdapter();
+        $this->filesystem = $this->createFilesystem( $this->adapter,$this->config );
     }
 
     abstract protected function createAdapter();
