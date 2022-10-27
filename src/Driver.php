@@ -1,30 +1,37 @@
 <?php
+
 declare ( strict_types = 1 );
 
 namespace yzh52521\filesystem;
 
-use League\Flysystem\Adapter\Ftp;
-use League\Flysystem\Adapter\Local as LocalAdapter;
-use League\Flysystem\AdapterInterface;
-use League\Flysystem\Adapter\AbstractAdapter;
-use League\Flysystem\AwsS3v3\AwsS3Adapter;
-use League\Flysystem\Cached\CachedAdapter;
-use League\Flysystem\Cached\Storage\Memory as MemoryStore;
-use League\Flysystem\FileNotFoundException;
 use League\Flysystem\Filesystem;
+use League\Flysystem\FilesystemAdapter;
+use League\Flysystem\FilesystemException;
+use League\Flysystem\Local\LocalFilesystemAdapter;
+use League\Flysystem\PathPrefixer;
+use League\Flysystem\PhpseclibV3\SftpAdapter;
+use League\Flysystem\StorageAttributes;
+use League\Flysystem\UnableToCopyFile;
+use League\Flysystem\UnableToCreateDirectory;
+use League\Flysystem\UnableToDeleteDirectory;
+use League\Flysystem\UnableToDeleteFile;
+use League\Flysystem\UnableToMoveFile;
+use League\Flysystem\UnableToReadFile;
+use League\Flysystem\UnableToRetrieveMetadata;
+use League\Flysystem\UnableToSetVisibility;
+use League\Flysystem\UnableToWriteFile;
+use League\Flysystem\Visibility;
 use Psr\Http\Message\StreamInterface;
-use RuntimeException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use think\Cache;
-use think\Collection;
 use think\File;
 use think\file\UploadedFile;
+use think\helper\Arr;
 use voku\helper\ASCII;
-use yzh52521\filesystem\driver\Sftp;
 
 /**
  * Class Driver
- * @package think\filesystem
+ * @package yzh52521\filesystem
  * @mixin Filesystem
  */
 abstract class Driver
@@ -40,11 +47,11 @@ abstract class Driver
     protected $adapter;
 
     /**
-     * The temporary URL builder callback.
+     * The Flysystem PathPrefixer instance.
      *
-     * @var \Closure|null
+     * @var PathPrefixer
      */
-    protected $temporaryUrlCallback;
+    protected $prefixer;
 
     /**
      * 配置参数
@@ -57,43 +64,57 @@ abstract class Driver
         $this->cache  = $cache;
         $this->config = array_merge( $this->config,$config );
 
-        $adapter          = $this->createAdapter();
-        $this->filesystem = $this->createFilesystem( $adapter );
-    }
+        $separator      = $config['directory_separator'] ?? DIRECTORY_SEPARATOR;
+        $this->prefixer = new PathPrefixer( $config['root'] ?? '',$separator );
 
-    protected function createCacheStore($config)
-    {
-        if (true === $config) {
-            return new MemoryStore;
+        if (isset( $config['prefix'] )) {
+            $this->prefixer = new PathPrefixer( $this->prefixer->prefixPath( $config['prefix'] ),$separator );
         }
 
-        return new CacheStore(
-            $this->cache->store( $config['store'] ),
-            $config['prefix'] ?? 'flysystem',
-            $config['expire'] ?? null
-        );
+        $this->adapter          = $this->createAdapter();
+        $this->filesystem = $this->createFilesystem( $this->adapter,$this->config );
     }
 
-    abstract protected function createAdapter(): AdapterInterface;
+    abstract protected function createAdapter();
 
-    protected function createFilesystem(AdapterInterface $adapter): Filesystem
+    /**
+     * @param FilesystemAdapter $adapter
+     * @param array $config
+     * @return Filesystem
+     */
+    protected function createFilesystem(FilesystemAdapter $adapter,array $config)
     {
-        if (!empty( $this->config['cache'] )) {
-            $adapter = new CachedAdapter( $adapter,$this->createCacheStore( $this->config['cache'] ) );
-        }
-
-        $config = array_intersect_key( $this->config,array_flip( ['visibility','disable_asserts','url'] ) );
-
-        return new Filesystem( $adapter,count( $config ) > 0 ? $config : null );
+        return new Filesystem( $adapter,Arr::only( $config,[
+            'directory_visibility',
+            'disable_asserts',
+            'temporary_url',
+            'url',
+            'visibility',
+        ] ) );
     }
 
     /**
-     * Determine if a file exists.
+     * 获取文件完整路径
+     * @param string $path
+     * @return string
+     */
+    public function path(string $path): string
+    {
+        return $this->prefixer->prefixPath( $path );
+    }
+
+    protected function concatPathToUrl($url,$path)
+    {
+        return rtrim( $url,'/' ).'/'.ltrim( $path,'/' );
+    }
+
+    /**
+     * Determine if a file or directory exists.
      *
      * @param string $path
      * @return bool
      */
-    public function exists($path)
+    public function exists($path): bool
     {
         return $this->filesystem->has( $path );
     }
@@ -104,25 +125,68 @@ abstract class Driver
      * @param string $path
      * @return bool
      */
-    public function missing($path)
+    public function missing($path): bool
     {
         return !$this->exists( $path );
     }
 
     /**
-     * 获取文件完整路径
+     * Determine if a file exists.
+     *
      * @param string $path
-     * @return string
+     * @return bool
      */
-    public function path(string $path): string
+    public function fileExists($path): bool
     {
-        $adapter = $this->filesystem->getAdapter();
+        return $this->filesystem->fileExists( $path );
+    }
 
-        if ($adapter instanceof AbstractAdapter) {
-            return $adapter->applyPathPrefix( $path );
+    /**
+     * Determine if a file is missing.
+     *
+     * @param string $path
+     * @return bool
+     */
+    public function fileMissing($path): bool
+    {
+        return !$this->fileExists( $path );
+    }
+
+    /**
+     * Determine if a directory exists.
+     *
+     * @param string $path
+     * @return bool
+     */
+    public function directoryExists($path)
+    {
+        return $this->filesystem->directoryExists( $path );
+    }
+
+    /**
+     * Determine if a directory is missing.
+     *
+     * @param string $path
+     * @return bool
+     */
+    public function directoryMissing($path)
+    {
+        return !$this->directoryExists( $path );
+    }
+
+    /**
+     * Get the contents of a file.
+     *
+     * @param string $path
+     * @return string|null
+     */
+    public function get($path)
+    {
+        try {
+            return $this->filesystem->read( $path );
+        } catch ( UnableToReadFile $e ) {
+            throw_if( $this->throwsExceptions(),$e );
         }
-
-        return $path;
     }
 
     /**
@@ -130,7 +194,7 @@ abstract class Driver
      *
      * @param string $path
      * @param string|null $name
-     * @param array|null $headers
+     * @param array $headers
      * @param string|null $disposition
      * @return \Symfony\Component\HttpFoundation\StreamedResponse
      */
@@ -138,17 +202,25 @@ abstract class Driver
     {
         $response = new StreamedResponse;
 
-        $filename = $name ?? basename( $path );
+        if (!array_key_exists( 'Content-Type',$headers )) {
+            $headers['Content-Type'] = $this->mimeType( $path );
+        }
 
-        $disposition = $response->headers->makeDisposition(
-            $disposition,$filename,$this->fallbackName( $filename )
-        );
+        if (!array_key_exists( 'Content-Length',$headers )) {
+            $headers['Content-Length'] = $this->size( $path );
+        }
 
-        $response->headers->replace( $headers + [
-                'Content-Type'        => $this->mimeType( $path ),
-                'Content-Length'      => $this->size( $path ),
-                'Content-Disposition' => $disposition,
-            ] );
+        if (!array_key_exists( 'Content-Disposition',$headers )) {
+            $filename = $name ?? basename( $path );
+
+            $disposition = $response->headers->makeDisposition(
+                $disposition,$filename,$this->fallbackName( $filename )
+            );
+
+            $headers['Content-Disposition'] = $disposition;
+        }
+
+        $response->headers->replace( $headers );
 
         $response->setCallback( function () use ($path) {
             $stream = $this->readStream( $path );
@@ -164,7 +236,6 @@ abstract class Driver
      *
      * @param string $path
      * @param string|null $name
-     * @param array|null $headers
      * @return \Symfony\Component\HttpFoundation\StreamedResponse
      */
     public function download($path,$name = null,array $headers = [])
@@ -182,24 +253,6 @@ abstract class Driver
     {
         return str_replace( '%','',ASCII::to_ascii( $name,'en' ) );
     }
-
-    /**
-     * Get the contents of a file.
-     *
-     * @param string $path
-     * @return string
-     *
-     * @throws
-     */
-    public function get($path)
-    {
-        try {
-            return $this->filesystem->read( $path );
-        } catch ( FileNotFoundException $e ) {
-            throw new \Exception( $e->getMessage(),$e->getCode(),$e );
-        }
-    }
-
     /**
      * Get the visibility for the given path.
      *
@@ -208,7 +261,7 @@ abstract class Driver
      */
     public function getVisibility($path)
     {
-        if ($this->filesystem->getVisibility( $path ) == AdapterInterface::VISIBILITY_PUBLIC) {
+        if ($this->filesystem->visibility( $path ) == Visibility::PUBLIC) {
             return 'public';
         }
 
@@ -224,7 +277,15 @@ abstract class Driver
      */
     public function setVisibility($path,$visibility)
     {
-        return $this->filesystem->setVisibility( $path,$this->parseVisibility( $visibility ) );
+        try {
+            $this->filesystem->setVisibility( $path,$visibility );
+        } catch ( UnableToSetVisibility $e ) {
+            throw_if( $this->throwsExceptions(),$e );
+
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -237,7 +298,7 @@ abstract class Driver
      */
     public function prepend($path,$data,$separator = PHP_EOL)
     {
-        if ($this->exists( $path )) {
+        if ($this->fileExists( $path )) {
             return $this->put( $path,$data.$separator.$this->get( $path ) );
         }
 
@@ -254,12 +315,13 @@ abstract class Driver
      */
     public function append($path,$data,$separator = PHP_EOL)
     {
-        if ($this->exists( $path )) {
+        if ($this->fileExists( $path )) {
             return $this->put( $path,$this->get( $path ).$separator.$data );
         }
 
         return $this->put( $path,$data );
     }
+
 
     /**
      * Delete the file at a given path.
@@ -275,10 +337,10 @@ abstract class Driver
 
         foreach ( $paths as $path ) {
             try {
-                if (!$this->filesystem->delete( $path )) {
-                    $success = false;
-                }
-            } catch ( FileNotFoundException $e ) {
+                $this->filesystem->delete( $path );
+            } catch ( UnableToDeleteFile $e ) {
+                throw_if( $this->throwsExceptions(),$e );
+
                 $success = false;
             }
         }
@@ -295,7 +357,15 @@ abstract class Driver
      */
     public function copy($from,$to)
     {
-        return $this->filesystem->copy( $from,$to );
+        try {
+            $this->filesystem->copy( $from,$to );
+        } catch ( UnableToCopyFile $e ) {
+            throw_if( $this->throwsExceptions(),$e );
+
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -307,7 +377,15 @@ abstract class Driver
      */
     public function move($from,$to)
     {
-        return $this->filesystem->rename( $from,$to );
+        try {
+            $this->filesystem->move( $from,$to );
+        } catch ( UnableToMoveFile $e ) {
+            throw_if( $this->throwsExceptions(),$e );
+
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -315,10 +393,11 @@ abstract class Driver
      *
      * @param string $path
      * @return int
+     * @throws FilesystemException
      */
     public function size($path)
     {
-        return $this->filesystem->getSize( $path );
+        return $this->filesystem->fileSize( $path );
     }
 
     /**
@@ -329,7 +408,13 @@ abstract class Driver
      */
     public function mimeType($path)
     {
-        return $this->filesystem->getMimetype( $path );
+        try {
+            return $this->filesystem->mimeType( $path );
+        } catch ( UnableToRetrieveMetadata $e ) {
+            throw_if( $this->throwsExceptions(),$e );
+        }
+
+        return false;
     }
 
     /**
@@ -338,59 +423,66 @@ abstract class Driver
      * @param string $path
      * @return int
      */
-    public function lastModified($path)
+    public function lastModified($path): int
     {
-        return $this->filesystem->getTimestamp( $path );
+        return $this->filesystem->lastModified( $path );
     }
 
-    protected function concatPathToUrl($url,$path)
+
+    /**
+     * {@inheritdoc}
+     */
+    public function readStream($path)
     {
-        return rtrim( $url,'/' ).'/'.ltrim( $path,'/' );
+        try {
+            return $this->filesystem->readStream( $path );
+        } catch ( UnableToReadFile $e ) {
+            throw_if( $this->throwsExceptions(),$e );
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function writeStream($path,$resource,array $options = [])
+    {
+        try {
+            $this->filesystem->writeStream( $path,$resource,$options );
+        } catch ( UnableToWriteFile|UnableToSetVisibility $e ) {
+            throw_if( $this->throwsExceptions(),$e );
+
+            return false;
+        }
+
+        return true;
+    }
+
+    protected function getLocalUrl($path)
+    {
+        if (isset( $this->config['url'] )) {
+            return $this->concatPathToUrl( $this->config['url'],$path );
+        }
+
+        return $path;
     }
 
     public function url(string $path): string
     {
-        $adapter = $this->filesystem->getAdapter();
-
-        if ($adapter instanceof CachedAdapter) {
-            $adapter = $adapter->getAdapter();
-        }
+        $adapter = $this->adapter;
 
         if (method_exists( $adapter,'getUrl' )) {
             return $adapter->getUrl( $path );
         } elseif (method_exists( $this->filesystem,'getUrl' )) {
             return $this->filesystem->getUrl( $path );
-        } elseif ($adapter instanceof AwsS3Adapter) {
-            return $this->getAwsUrl( $adapter,$path );
-        } elseif ($adapter instanceof Ftp || $adapter instanceof Sftp) {
+        } elseif ($adapter instanceof SftpAdapter) {
             return $this->getFtpUrl( $path );
-        } elseif ($adapter instanceof LocalAdapter) {
+        } elseif ($adapter instanceof LocalFilesystemAdapter) {
             return $this->getLocalUrl( $path );
         } else {
-            throw new RuntimeException( 'This driver does not support retrieving URLs.' );
+            throw new \RuntimeException( 'This driver does not support retrieving URLs.' );
         }
     }
 
-    /**
-     * Get the URL for the file at the given path.
-     *
-     * @param \League\Flysystem\AwsS3v3\AwsS3Adapter $adapter
-     * @param string $path
-     * @return string
-     */
-    protected function getAwsUrl($adapter,$path)
-    {
-        // If an explicit base URL has been set on the disk configuration then we will use
-        // it as the base URL instead of the default path. This allows the developer to
-        // have full control over the base path for this filesystem's generated URLs.
-        if (!is_null( $url = $this->filesystem->getConfig()->get( 'url' ) )) {
-            return $this->concatPathToUrl( $url,$adapter->getPathPrefix().$path );
-        }
-
-        return $adapter->getClient()->getObjectUrl(
-            $adapter->getBucket(),$adapter->getPathPrefix().$path
-        );
-    }
 
     /**
      * Get the URL for the file at the given path.
@@ -400,98 +492,9 @@ abstract class Driver
      */
     protected function getFtpUrl($path)
     {
-        $config = $this->filesystem->getConfig();
-
-        return $config->has( 'url' )
-            ? $this->concatPathToUrl( $config->get( 'url' ),$path )
+        return isset( $this->config['url'] )
+            ? $this->concatPathToUrl( $this->config['url'],$path )
             : $path;
-    }
-
-    /**
-     * Get the URL for the file at the given path.
-     *
-     * @param string $path
-     * @return string
-     */
-    protected function getLocalUrl($path)
-    {
-        $config = $this->filesystem->getConfig();
-
-        // If an explicit base URL has been set on the disk configuration then we will use
-        // it as the base URL instead of the default path. This allows the developer to
-        // have full control over the base path for this filesystem's generated URLs.
-        if ($config->has( 'url' )) {
-            return $this->concatPathToUrl( $config->get( 'url' ),$path );
-        }
-
-        return $path;
-    }
-
-    /**
-     * Get a temporary URL for the file at the given path.
-     *
-     * @param string $path
-     * @param \DateTimeInterface $expiration
-     * @param array $options
-     * @return string
-     *
-     * @throws \RuntimeException
-     */
-    public function temporaryUrl($path,$expiration,array $options = [])
-    {
-        $adapter = $this->filesystem->getAdapter();
-
-        if ($adapter instanceof CachedAdapter) {
-            $adapter = $adapter->getAdapter();
-        }
-
-        if (method_exists( $adapter,'getTemporaryUrl' )) {
-            return $adapter->getTemporaryUrl( $path,$expiration,$options );
-        }
-
-        if ($this->temporaryUrlCallback) {
-            return $this->temporaryUrlCallback->bindTo( $this,static::class )(
-                $path,$expiration,$options
-            );
-        }
-
-        if ($adapter instanceof AwsS3Adapter) {
-            return $this->getAwsTemporaryUrl( $adapter,$path,$expiration,$options );
-        }
-
-        throw new RuntimeException( 'This driver does not support creating temporary URLs.' );
-    }
-
-    /**
-     * Get a temporary URL for the file at the given path.
-     *
-     * @param \League\Flysystem\AwsS3v3\AwsS3Adapter $adapter
-     * @param string $path
-     * @param \DateTimeInterface $expiration
-     * @param array $options
-     * @return string
-     */
-    public function getAwsTemporaryUrl($adapter,$path,$expiration,$options)
-    {
-        $client = $adapter->getClient();
-
-        $command = $client->getCommand( 'GetObject',array_merge( [
-            'Bucket' => $adapter->getBucket(),
-            'Key'    => $adapter->getPathPrefix().$path,
-        ],$options ) );
-
-        $uri = $client->createPresignedRequest(
-            $command,$expiration
-        )->getUri();
-
-        // If an explicit base URL has been set on the disk configuration then we will use
-        // it as the base URL instead of the default path. This allows the developer to
-        // have full control over the base path for this filesystem's generated URLs.
-        if (!is_null( $url = $this->filesystem->getConfig()->get( 'temporary_url' ) )) {
-            $uri = $this->replaceBaseUrl( $uri,$url );
-        }
-
-        return (string)$uri;
     }
 
     /**
@@ -512,6 +515,95 @@ abstract class Driver
     }
 
     /**
+     * Get the Flysystem driver.
+     *
+     * @return \League\Flysystem\FilesystemOperator
+     */
+    public function getDriver()
+    {
+        return $this->filesystem;
+    }
+
+    /**
+     * Get the Flysystem adapter.
+     *
+     * @return \League\Flysystem\FilesystemAdapter
+     */
+    public function getAdapter()
+    {
+        return $this->adapter;
+    }
+
+    /**
+     * 保存文件
+     * @param string $path 路径
+     * @param File|string $file 文件
+     * @param null|string|\Closure $rule 文件名规则
+     * @param array $options 参数
+     * @return bool|string
+     */
+    public function putFile(string $path,$file,$rule = null,array $options = [])
+    {
+        $file = is_string( $file ) ? new File( $file ) : $file;
+        return $this->putFileAs( $path,$file,$file->hashName( $rule ),$options );
+    }
+
+    /**
+     * 指定文件名保存文件
+     * @param string $path 路径
+     * @param File $file 文件
+     * @param string $name 文件名
+     * @param array $options 参数
+     * @return bool|string
+     */
+    public function putFileAs(string $path,File $file,string $name,array $options = [])
+    {
+        $stream = fopen( $file->getRealPath(),'r' );
+        $path   = trim( $path.'/'.$name,'/' );
+
+        $result = $this->put( $path,$stream,$options );
+
+        if (is_resource( $stream )) {
+            fclose( $stream );
+        }
+
+        return $result ? $path : false;
+    }
+
+    public function put($path,$contents,$options = [])
+    {
+        $options = is_string( $options )
+            ? ['visibility' => $options]
+            : (array)$options;
+
+        // If the given contents is actually a file or uploaded file instance than we will
+        // automatically store the file using a stream. This provides a convenient path
+        // for the developer to store streams without managing them manually in code.
+        if ($contents instanceof File ||
+            $contents instanceof UploadedFile) {
+            return $this->putFile( $path,$contents,$options );
+        }
+
+        try {
+            if ($contents instanceof StreamInterface) {
+                $this->writeStream( $path,$contents->detach(),$options );
+
+                return true;
+            }
+
+            is_resource( $contents )
+                ? $this->writeStream( $path,$contents,$options )
+                : $this->write( $path,$contents,$options );
+        } catch ( UnableToWriteFile|UnableToSetVisibility $e ) {
+            throw_if( $this->throwsExceptions(),$e );
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Get an array of all files in a directory.
      *
      * @param string|null $directory
@@ -520,9 +612,15 @@ abstract class Driver
      */
     public function files($directory = null,$recursive = false)
     {
-        $contents = $this->filesystem->listContents( $directory ?? '',$recursive );
-
-        return $this->filterContentsByType( $contents,'file' );
+        return $this->filesystem->listContents( $directory ?? '',$recursive )
+            ->filter( function (StorageAttributes $attributes) {
+                return $attributes->isFile();
+            } )
+            ->sortByPath()
+            ->map( function (StorageAttributes $attributes) {
+                return $attributes->path();
+            } )
+            ->toArray();
     }
 
     /**
@@ -545,13 +643,18 @@ abstract class Driver
      */
     public function directories($directory = null,$recursive = false)
     {
-        $contents = $this->filesystem->listContents( $directory ?? '',$recursive );
-
-        return $this->filterContentsByType( $contents,'dir' );
+        return $this->filesystem->listContents( $directory ?? '',$recursive )
+            ->filter( function (StorageAttributes $attributes) {
+                return $attributes->isDir();
+            } )
+            ->map( function (StorageAttributes $attributes) {
+                return $attributes->path();
+            } )
+            ->toArray();
     }
 
     /**
-     * Get all (recursive) of the directories within a given directory.
+     * Get all the directories within a given directory (recursive).
      *
      * @param string|null $directory
      * @return array
@@ -569,7 +672,15 @@ abstract class Driver
      */
     public function makeDirectory($path)
     {
-        return $this->filesystem->createDir( $path );
+        try {
+            $this->filesystem->createDirectory( $path );
+        } catch ( UnableToCreateDirectory|UnableToSetVisibility $e ) {
+            throw_if( $this->throwsExceptions(),$e );
+
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -580,151 +691,25 @@ abstract class Driver
      */
     public function deleteDirectory($directory)
     {
-        return $this->filesystem->deleteDir( $directory );
-    }
+        try {
+            $this->filesystem->deleteDirectory( $directory );
+        } catch ( UnableToDeleteDirectory $e ) {
+            throw_if( $this->throwsExceptions(),$e );
 
-    /**
-     * Flush the Flysystem cache.
-     *
-     * @return void
-     */
-    public function flushCache()
-    {
-        $adapter = $this->filesystem->getAdapter();
-
-        if ($adapter instanceof CachedAdapter) {
-            $adapter->getCache()->flush();
-        }
-    }
-
-    /**
-     * Get the Flysystem driver.
-     *
-     * @return \League\Flysystem\FilesystemInterface
-     */
-    public function getAdapter()
-    {
-        return $this->adapter;
-    }
-
-    /**
-     * Filter directory contents by type.
-     *
-     * @param array $contents
-     * @param string $type
-     * @return array
-     */
-    protected function filterContentsByType($contents,$type)
-    {
-        return Collection::make( $contents )
-            ->where( 'type',$type )
-            ->column( 'path' );
-    }
-
-    /**
-     * Parse the given visibility value.
-     *
-     * @param string|null $visibility
-     * @return string|null
-     *
-     * @throws \InvalidArgumentException
-     */
-    protected function parseVisibility($visibility)
-    {
-        if (is_null( $visibility )) {
-            return;
+            return false;
         }
 
-        switch ( $visibility ) {
-            case 'public':
-                return AdapterInterface::VISIBILITY_PUBLIC;
-            case 'private':
-                return AdapterInterface::VISIBILITY_PRIVATE;
-        }
-
-        throw new \InvalidArgumentException( "Unknown visibility: {$visibility}." );
+        return true;
     }
 
     /**
-     * Define a custom temporary URL builder callback.
+     * Determine if Flysystem exceptions should be thrown.
      *
-     * @param \Closure $callback
-     * @return void
-     */
-    public function buildTemporaryUrlsUsing(\Closure $callback)
-    {
-        $this->temporaryUrlCallback = $callback;
-    }
-
-
-    /**
-     * Write the contents of a file.
-     *
-     * @param string $path
-     * @param \Psr\Http\Message\StreamInterface|UploadedFile|string|resource $contents
-     * @param mixed $options
      * @return bool
      */
-    public function put($path,$contents,$options = [])
+    protected function throwsExceptions(): bool
     {
-        $options = is_string( $options )
-            ? ['visibility' => $options]
-            : (array)$options;
-
-        // If the given contents is actually a file or uploaded file instance than we will
-        // automatically store the file using a stream. This provides a convenient path
-        // for the developer to store streams without managing them manually in code.
-        if ($contents instanceof File ||
-            $contents instanceof UploadedFile) {
-            return $this->putFile( $path,$contents,$options );
-        }
-
-        if ($contents instanceof StreamInterface) {
-            return $this->filesystem->putStream( $path,$contents->detach(),$options );
-        }
-
-        return is_resource( $contents )
-            ? $this->filesystem->putStream( $path,$contents,$options )
-            : $this->filesystem->put( $path,$contents,$options );
-    }
-
-
-    /**
-     * 保存文件
-     * @param string $path 路径
-     * @param File|string $file 文件
-     * @param null|string|\Closure $rule 文件名规则
-     * @param array $options 参数
-     * @return bool|string
-     */
-    public function putFile(string $path,File $file,$rule = null,array $options = [])
-    {
-        $file = is_string( $file ) ? new File( $file ) : $file;
-
-        return $this->putFileAs( $path,$file,$file->hashName( $rule ),$options );
-    }
-
-    /**
-     * 指定文件名保存文件
-     * @param string $path 路径
-     * @param File|string $file 文件
-     * @param string $name 文件名
-     * @param array $options 参数
-     * @return bool|string
-     */
-    public function putFileAs(string $path,File $file,string $name,array $options = [])
-    {
-        $stream = fopen( is_string( $file ) ? $file : $file->getRealPath(),'r' );
-        $path   = trim( $path.'/'.$name,'/' );
-
-        $result = $this->put( $path,$stream,$options );
-
-        if (is_resource( $stream )) {
-            fclose( $stream );
-        }
-
-        return $result ? $path : false;
-
+        return (bool)( $this->config['throw'] ?? false );
     }
 
     public function __call($method,$parameters)
