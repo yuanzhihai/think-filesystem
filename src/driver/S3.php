@@ -21,11 +21,5 @@ class S3 extends Driver
         return new AwsS3Adapter($client, $options['bucket_name'], '');
     }
 
-    public function url(string $path): string
-    {
-        if (isset($this->config['url'])) {
-            return $this->concatPathToUrl($this->config['url'], $path);
-        }
-        return parent::url($path);
-    }
+
 }

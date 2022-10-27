@@ -24,11 +24,4 @@ class Obs extends Driver
         ]);
     }
 
-    public function url(string $path): string
-    {
-        if (isset($this->config['url'])) {
-            return $this->concatPathToUrl($this->config['url'], $path);
-        }
-        return parent::url($path);
-    }
 }

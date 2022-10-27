@@ -57,8 +57,8 @@ abstract class Driver
         $this->cache  = $cache;
         $this->config = array_merge( $this->config,$config );
 
-        $adapter          = $this->createAdapter();
-        $this->filesystem = $this->createFilesystem( $adapter );
+        $this->adapter          = $this->createAdapter();
+        $this->filesystem = $this->createFilesystem( $this->adapter );
     }
 
     protected function createCacheStore($config)
@@ -350,7 +350,7 @@ abstract class Driver
 
     public function url(string $path): string
     {
-        $adapter = $this->filesystem->getAdapter();
+        $adapter = $this->adapter;
 
         if ($adapter instanceof CachedAdapter) {
             $adapter = $adapter->getAdapter();
@@ -439,7 +439,7 @@ abstract class Driver
      */
     public function temporaryUrl($path,$expiration,array $options = [])
     {
-        $adapter = $this->filesystem->getAdapter();
+        $adapter = $this->adapter;
 
         if ($adapter instanceof CachedAdapter) {
             $adapter = $adapter->getAdapter();
