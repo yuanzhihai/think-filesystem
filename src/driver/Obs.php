@@ -1,34 +1,39 @@
 <?php
 
-declare(strict_types=1);
+declare( strict_types = 1 );
 
 namespace yzh52521\filesystem\driver;
 
-use League\Flysystem\AdapterInterface;
+use Obs\ObsClient;
 use yzh52521\filesystem\Driver;
 use yzh52521\Flysystem\Obs\ObsAdapter;
 
 class Obs extends Driver
 {
 
-    protected function createAdapter(): AdapterInterface
+    protected function createAdapter()
     {
-        return new ObsAdapter([
-            'key'        => $this->config['key'],
-            'secret'     => $this->config['secret'],
-            'bucket'     => $this->config['bucket'],
-            'endpoint'   => $this->config['endpoint'],
-            'cdn_domain' => $this->config['cdn_domain'],
-            'ssl_verify' => $this->config['ssl_verify'],
-            'debug'      => $this->config['debug']
-        ]);
+        $config            = [
+            'key'      => $this->config['key'],
+            'secret'   => $this->config['secret'],
+            'bucket'   => $this->config['bucket'],
+            'endpoint' => $this->config['endpoint'],
+        ];
+        $client            = new ObsClient( $config );
+        $config['options'] = [
+            'url'             => '',
+            'endpoint'        => $this->config['endpoint'],
+            'bucket_endpoint' => '',
+            'temporary_url'   => '',
+        ];
+        return new ObsAdapter( $client,$this->config['bucket'],$this->config['prefix'],null,null,$config['options'] );
     }
 
     public function url(string $path): string
     {
-        if (isset($this->config['url'])) {
-            return $this->concatPathToUrl($this->config['url'], $path);
+        if (isset( $this->config['url'] )) {
+            return $this->concatPathToUrl( $this->config['url'],$path );
         }
-        return parent::url($path);
+        return parent::url( $path );
     }
 }
