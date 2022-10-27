@@ -22,7 +22,8 @@ class Sftp extends Driver
             $this->config['timeout'] ?? false, // use agent (optional, default: false)
             30, // timeout (optional, default: 10)
             10, // max tries (optional, default: 4)
-            null,
+             'fingerprint-string',
+             null,
         ),$this->config['root'], // root path (required)
             PortableVisibilityConverter::fromArray( [
                 'file' => [
