@@ -92,6 +92,13 @@ $ composer require yzh52521/think-filesystem
 第三步： 开始使用。 请参考thinkphp文档
 文档地址：[https://www.kancloud.cn/manual/thinkphp6_0/1037639 ](https://www.kancloud.cn/manual/thinkphp6_0/1037639 )
 
+
+使用面板 
+
+yzh52521/flysystem/facade/Flysystem
+
+
+
 ## 授权
 
 MIT
