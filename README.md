@@ -93,9 +93,26 @@ $ composer require yzh52521/think-filesystem
 文档地址：[https://www.kancloud.cn/manual/thinkphp6_0/1037639 ](https://www.kancloud.cn/manual/thinkphp6_0/1037639 )
 
 
-使用面板 
+### demo
+```php
+$file = $this->request->file( 'image' );
+      try {
+            validate(
+                ['image' => [
+                        // 限制文件大小(单位b)，这里限制为4M
+                        'fileSize' => 10 * 1024 * 1000,
+                        // 限制文件后缀，多个后缀以英文逗号分割
+                        'fileExt'  => 'gif,jpg,png,jpeg'
+                    ]
+                ])->check( ['image' => $file] );
 
-yzh52521/flysystem/facade/Flysystem
+            $path     = \yzh52521\filesystem\facade\Filesystem::disk( 'public' )->putFile( 'test',$file);
+            $url      = \yzh52521\filesystem\facade\Filesystem::disk( 'public' )->url( $path );
+            return json( ['path' => $path,'url'  => $url] );
+      } catch ( \think\exception\ValidateException $e ) {
+            echo $e->getMessage();
+     }
+```
 
 
 
