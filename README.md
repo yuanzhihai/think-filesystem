@@ -90,6 +90,7 @@ $ composer require yzh52521/think-filesystem
     // 可选的 SFTP 设置
     'port' => 22,
     'root' => '/path/to/root',
+    'url' => '/path/to/root',
     'timeout' => 10
 ]
 ```
