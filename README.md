@@ -55,6 +55,7 @@ $ composer require yzh52521/think-filesystem
     'read_from_cdn'   => false,
 ]
 'obs'=>[
+     'type' =>'obs',
      'key'        => 'OBS_ACCESS_ID',
      'secret'     => 'OBS_ACCESS_KEY', //Huawei OBS AccessKeySecret
      'bucket'     => 'OBS_BUCKET', //OBS bucket name
@@ -64,6 +65,7 @@ $ composer require yzh52521/think-filesystem
      'debug'      => 'APP_DEBUG',
 ],
 's3'=>[
+       'type' =>'s3',
       'credentials'             => [
                 'key'    => 'S3_KEY',
                 'secret' => 'S3_SECRET',
@@ -76,16 +78,18 @@ $ composer require yzh52521/think-filesystem
       'bucket_name'             => 'S3_BUCKET',
 ],
 'sftp'=>[
+    'type' =>'sftp',
     'host' => 'example.com',
     // 基于基础的身份验证设置...
     'username' => 'username',
     'password' => 'password',
     // 使用加密密码进行基于 SSH 密钥的身份验证的设置...
-    'privateKey' => 'path/to/or/contents/of/privatekey',
-    'passphrase' => 'passphrase-for-privateKey',
+    'privateKey' => null,
+    'passphrase' => null,
     // 可选的 SFTP 设置
     'port' => 22,
     'root' => '/path/to/root',
+    'url' => '/path/to/root',
     'timeout' => 10
 ]
 ```
@@ -93,9 +97,27 @@ $ composer require yzh52521/think-filesystem
 第三步： 开始使用。 请参考thinkphp文档
 文档地址：[https://www.kancloud.cn/manual/thinkphp6_0/1037639 ](https://www.kancloud.cn/manual/thinkphp6_0/1037639 )
 
-使用面板
+### demo 
 
-yzh52521/flysystem/facade/Flysystem
+```php
+$file = $this->request->file( 'image' );
+      try {
+            validate(
+                ['image' => [
+                        // 限制文件大小(单位b)，这里限制为4M
+                        'fileSize' => 10 * 1024 * 1000,
+                        // 限制文件后缀，多个后缀以英文逗号分割
+                        'fileExt'  => 'gif,jpg,png,jpeg'
+                    ]
+                ])->check( ['image' => $file] );
+
+            $path     = \yzh52521\filesystem\facade\Filesystem::disk( 'public' )->putFile( 'test',$file);
+            $url      = \yzh52521\filesystem\facade\Filesystem::disk( 'public' )->url( $path );
+            return json( ['path' => $path,'url'  => $url] );
+      } catch ( \think\exception\ValidateException $e ) {
+            echo $e->getMessage();
+     }
+```
 
 ## 授权
 
