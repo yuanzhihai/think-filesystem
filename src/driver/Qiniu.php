@@ -14,7 +14,7 @@ class Qiniu extends Driver
     {
         return new QiniuAdapter(
             $this->config['accessKey'], $this->config['secretKey'],
-            $this->config['bucket'], $this->config['url']
+            $this->config['bucket'], $this->config['domain']
         );
     }
 }
