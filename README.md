@@ -56,6 +56,7 @@ $ composer require yzh52521/think-filesystem
     'read_from_cdn'   => false,
 ]
 'obs'=>[
+     'type'       => 'obs',
      'key'        => 'OBS_ACCESS_ID',
      'secret'     => 'OBS_ACCESS_KEY', //Huawei OBS AccessKeySecret
      'bucket'     => 'OBS_BUCKET', //OBS bucket name
@@ -65,6 +66,7 @@ $ composer require yzh52521/think-filesystem
      'debug'      => 'APP_DEBUG',
 ],
 's3'=>[
+      'type'       => 's3',
       'credentials'             => [
                 'key'    => 'S3_KEY',
                 'secret' => 'S3_SECRET',
@@ -77,15 +79,17 @@ $ composer require yzh52521/think-filesystem
       'bucket_name'             => 'S3_BUCKET',
 ],
 'sftp'=>[
+    'type'=> 'sftp',
     'host' => 'example.com',
     'username' => 'username',
     'password' => 'password',
     // Settings for SSH key based authentication...
-    'privateKey' => 'path/to/or/contents/of/privatekey',
-    'passphrase' => 'passphrase-for-privateKey',
+    'privateKey' => null,
+    'passphrase' => null,
     // Optional SFTP Settings...
     'port' => 22,
     'root' => '/path/to/root',
+    'url' => '/path/to/root',
     'timeout' => 10,
 ]
 ```
