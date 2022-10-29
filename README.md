@@ -15,7 +15,6 @@
 5. AwsS3
 6. sfpt
 
-
 ## 安装
 
 第一步：
@@ -33,14 +32,14 @@ $ composer require yzh52521/think-filesystem
     'accessSecret' => '******',
     'bucket'       => 'bucket',
     'endpoint'     => 'oss-cn-hongkong.aliyuncs.com',
-    'url'          => 'http://oss-cn-hongkong.aliyuncs.com',//不要斜杠结尾，此处为URL地址域名。
+    'url'          => 'http://oss-cn-hongkong.aliyuncs.com',
 ],
 'qiniu'  => [
     'type'      => 'qiniu',
     'accessKey' => '******',
     'secretKey' => '******',
     'bucket'    => 'bucket',
-    'url'       => '',//不要斜杠结尾，此处为URL地址域名。
+    'domain'    => 'https://youcdn.domain.com',
 ],
 'qcloud' => [
     'type'       => 'qcloud',
@@ -78,26 +77,25 @@ $ composer require yzh52521/think-filesystem
 ],
 'sftp'=>[
     'host' => 'example.com',
-    'port' => 22,
+    // 基于基础的身份验证设置...
     'username' => 'username',
     'password' => 'password',
+    // 使用加密密码进行基于 SSH 密钥的身份验证的设置...
     'privateKey' => 'path/to/or/contents/of/privatekey',
     'passphrase' => 'passphrase-for-privateKey',
+    // 可选的 SFTP 设置
+    'port' => 22,
     'root' => '/path/to/root',
-    'timeout' => 10,
-    'directoryPerm' => 0755
+    'timeout' => 10
 ]
 ```
 
 第三步： 开始使用。 请参考thinkphp文档
 文档地址：[https://www.kancloud.cn/manual/thinkphp6_0/1037639 ](https://www.kancloud.cn/manual/thinkphp6_0/1037639 )
 
-
-使用面板 
+使用面板
 
 yzh52521/flysystem/facade/Flysystem
-
-
 
 ## 授权
 
