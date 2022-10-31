@@ -12,6 +12,7 @@
         "yzh52521/flysystem-obs": "^2.0",
         "league/flysystem-aws-s3-v3":"^2.0",
         "league/flysystem-sftp-v3": "^2.0",
+        "league/flysystem-ftp": "^2.0",
         "voku/portable-ascii": "^1.6.1"
     },
     "require-dev": {

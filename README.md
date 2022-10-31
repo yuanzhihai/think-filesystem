@@ -15,7 +15,6 @@
 5. AwsS3
 6. sfpt
 
-
 ## 安装
 
 第一步：
@@ -78,6 +77,17 @@ $ composer require yzh52521/think-filesystem
       'endpoint'                => 'S3_ENDPOINT',
       'bucket_name'             => 'S3_BUCKET',
 ],
+'ftp' =>[
+    'type'       => 'ftp',
+    'host' => 'example.com',
+    // 基于基础的身份验证设置...
+    'username' => 'username',
+    'password' => 'password',
+    'root' => '/path/to/root',
+    'url' => '/path/to/root',
+    'port' => 21,
+    'timeout' => 90,
+],
 'sftp'=>[
     'type'       => 'sftp',
     'host' => 'example.com',
@@ -98,7 +108,8 @@ $ composer require yzh52521/think-filesystem
 第三步： 开始使用。 请参考thinkphp文档
 文档地址：[https://www.kancloud.cn/manual/thinkphp6_0/1037639 ](https://www.kancloud.cn/manual/thinkphp6_0/1037639 )
 
-### demo 
+### demo
+
 ```php
 $file = $this->request->file( 'image' );
       try {
@@ -118,7 +129,6 @@ $file = $this->request->file( 'image' );
             echo $e->getMessage();
      }
 ```
-
 
 ## 授权
 
