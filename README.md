@@ -78,6 +78,19 @@ $ composer require yzh52521/think-filesystem
       'endpoint'                => 'S3_ENDPOINT',
       'bucket_name'             => 'S3_BUCKET',
 ],
+'ftp'=[
+    'type' =>'ftp',
+    'host' => 'example.com',
+    'username' => 'username',
+    'password' => 'password',
+    // 可选的 FTP 设置
+    // 'port' => 21,
+    // 'root' => '',
+    // 'passive' => true,
+    // 'ssl' => true,
+    // 'timeout' => 30,
+    'url'=>''
+],
 'sftp'=>[
     'type'=> 'sftp',
     'host' => 'example.com',
