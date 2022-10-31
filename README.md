@@ -84,10 +84,13 @@ $ composer require yzh52521/think-filesystem
     // 基于基础的身份验证设置...
     'username' => 'username',
     'password' => 'password',
-    'root' => '/path/to/root',
-    'url' => '/path/to/root',
-    'port' => 21,
-    'timeout' => 90,
+   // 可选的 FTP 设置
+    // 'port' => 21,
+    // 'root' => '',
+    // 'passive' => true,
+    // 'ssl' => true,
+    // 'timeout' => 30,
+    'url' => '',
 ],
 'sftp'=>[
     'type'       => 'sftp',
