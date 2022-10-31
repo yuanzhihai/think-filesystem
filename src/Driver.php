@@ -7,6 +7,7 @@ namespace yzh52521\filesystem;
 use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\FilesystemException;
+use League\Flysystem\Ftp\FtpAdapter;
 use League\Flysystem\Local\LocalFilesystemAdapter;
 use League\Flysystem\PathPrefixer;
 use League\Flysystem\PhpseclibV3\SftpAdapter;
@@ -475,7 +476,7 @@ abstract class Driver
             return $adapter->getUrl( $path );
         } elseif (method_exists( $this->filesystem,'getUrl' )) {
             return $this->filesystem->getUrl( $path );
-        } elseif ($adapter instanceof SftpAdapter) {
+        } elseif ($adapter instanceof SftpAdapter || $adapter instanceof FtpAdapter) {
             return $this->getFtpUrl( $path );
         }  elseif ($adapter instanceof LocalFilesystemAdapter) {
             return $this->getLocalUrl( $path );
