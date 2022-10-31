@@ -13,6 +13,7 @@
 3. 腾讯云
 4. 华为云
 5. AwsS3
+6. fpt
 6. sfpt
 
 
@@ -77,6 +78,18 @@ $ composer require yzh52521/think-filesystem
       'use_path_style_endpoint' => false,
       'endpoint'                => 'S3_ENDPOINT',
       'bucket_name'             => 'S3_BUCKET',
+],
+'ftp' => [
+    'type' => 'ftp',
+    'host' => 'ftp.example.com',
+    'username' => 'your-username',
+    'password' => 'your-password',
+    // Optional FTP Settings...
+    // 'port' => 21,
+    // 'root' => '',
+    // 'passive' => true,
+    // 'ssl' => true,
+    // 'timeout' => 30,
 ],
 'sftp'=>[
     'type'=> 'sftp',
