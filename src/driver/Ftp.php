@@ -11,10 +11,10 @@ class Ftp extends Driver
 {
     protected function createAdapter()
     {
-        if (!isset( $config['root'] )) {
-            $config['root'] = '';
+        if (!isset( $this->config['root'] )) {
+            $this->config['root'] = '';
         }
 
-        return new FtpAdapter( FtpConnectionOptions::fromArray( $config ) );
+        return new FtpAdapter( FtpConnectionOptions::fromArray( $this->config ) );
     }
 }
