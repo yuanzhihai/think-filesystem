@@ -3,7 +3,7 @@
 
 ## 包含
 
-1. php >= 7.1
+1. php >= 8.0.2
 2. thinkphp >=6.1.0
 
 ## 支持
@@ -13,7 +13,9 @@
 3. 腾讯云
 4. 华为云
 5. AwsS3
-6. sfpt
+6. google
+7. ftp
+8. sftp
 
 
 ## 安装
@@ -77,6 +79,12 @@ $ composer require yzh52521/think-filesystem
       'use_path_style_endpoint' => false,
       'endpoint'                => 'S3_ENDPOINT',
       'bucket_name'             => 'S3_BUCKET',
+],
+'google'=>[
+    'type' =>'google',
+    'projectId' => 'GOOGLE_PROJECT_ID',//your-project-id
+    'bucket' => 'GOOGLE_BUCKET', //your-bucket-name
+    'keyFilePath' => 'GOOGLE_KEY_FILE_PATH', 
 ],
 'ftp'=[
     'type' =>'ftp',
