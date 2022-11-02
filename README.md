@@ -84,7 +84,7 @@ $ composer require yzh52521/think-filesystem
     'type' =>'google',
     'projectId' => 'GOOGLE_PROJECT_ID',//your-project-id
     'bucket' => 'GOOGLE_BUCKET', //your-bucket-name
-    'keyFilePath' => 'GOOGLE_KEY_FILE_PATH', 
+    'prefix' => '',//optional-prefix 
 ],
 'ftp'=[
     'type' =>'ftp',
