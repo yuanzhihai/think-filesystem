@@ -78,6 +78,12 @@ $ composer require yzh52521/think-filesystem
       'endpoint'                => 'S3_ENDPOINT',
       'bucket_name'             => 'S3_BUCKET',
 ],
+'google'=>[
+    'type' =>'google',
+    'projectId' => 'GOOGLE_PROJECT_ID',//your-project-id
+    'bucket' => 'GOOGLE_BUCKET', //your-bucket-name
+    'prefix' => '',  //optional-prefix
+],
 'ftp' =>[
     'type'       => 'ftp',
     'host' => 'example.com',
