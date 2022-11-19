@@ -58,13 +58,13 @@ $ composer require yzh52521/think-filesystem
 ]
 'obs'=>[
      'type' =>'obs',
-     'key'        => 'OBS_ACCESS_ID',
-     'secret'     => 'OBS_ACCESS_KEY', //Huawei OBS AccessKeySecret
-     'bucket'     => 'OBS_BUCKET', //OBS bucket name
-     'endpoint'   => 'OBS_ENDPOINT',
-     'cdn_domain' => 'OBS_CDN_DOMAIN',
-     'ssl_verify' => 'OBS_SSL_VERIFY',
-     'debug'      => 'APP_DEBUG',
+     'root' => '',
+     'key' => env('OBS_KEY'),
+     'secret' => env('OBS_SECRET'),
+      'bucket' => env('OBS_BUCKET'),
+      'endpoint' => env('OBS_ENDPOINT'),
+      'is_cname' => env('OBS_IS_CNAME', false),
+      'security_token' => env('OBS_SECURITY_TOKEN'),
 ],
 's3'=>[
        'type' =>'s3',
