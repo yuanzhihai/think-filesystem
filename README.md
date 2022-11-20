@@ -46,7 +46,7 @@ $ composer require yzh52521/think-filesystem
 'qcloud' => [
     'type'       => 'qcloud',
     'region'      => '***', //bucket 所属区域 英文
-    'appId'      => '***', // 域名中数字部分
+    'app_id'      => '***', // 域名中数字部分
     'secret_id'   => '***',
     'secret_key'  => '***',
     'bucket'          => '***',
