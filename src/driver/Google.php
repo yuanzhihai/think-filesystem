@@ -16,6 +16,6 @@ class Google extends Driver
         ] );
         $bucket        = $storageClient->bucket( $this->config['bucket'] );
 
-        $adapter = new GoogleCloudStorageAdapter( $bucket,$this->config['prefix'] ?? '' );
+        return  new GoogleCloudStorageAdapter( $bucket,$this->config['prefix'] ?? '' );
     }
 }
