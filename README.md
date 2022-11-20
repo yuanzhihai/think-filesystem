@@ -63,8 +63,8 @@ $ composer require yzh52521/think-filesystem
       'secret' => env('OBS_SECRET'),
       'bucket' => env('OBS_BUCKET'),
       'endpoint' => env('OBS_ENDPOINT'),
-      'is_cname' => env('OBS_IS_CNAME', false),
-      'security_token' => env('OBS_SECURITY_TOKEN'),
+      'is_cname' => env('OBS_IS_CNAME', false), //true or false...
+      'security_token' => env('OBS_SECURITY_TOKEN'),//true or false...
 ],
 's3'=>[
        'type' =>'s3',
