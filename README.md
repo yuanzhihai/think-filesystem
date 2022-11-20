@@ -38,8 +38,8 @@ $ composer require yzh52521/think-filesystem
 ],
 'qiniu'  => [
     'type'      => 'qiniu',
-    'accessKey' => '******',
-    'secretKey' => '******',
+    'access_key' => '******',
+    'secret_key' => '******',
     'bucket'    => 'bucket',
     'domain'    => 'https://youcdn.domain.com',
 ],
@@ -47,8 +47,8 @@ $ composer require yzh52521/think-filesystem
     'type'       => 'qcloud',
     'region'      => '***', //bucket 所属区域 英文
     'appId'      => '***', // 域名中数字部分
-    'secretId'   => '***',
-    'secretKey'  => '***',
+    'secret_id'   => '***',
+    'secret_key'  => '***',
     'bucket'          => '***',
     'timeout'         => 60,
     'connect_timeout' => 60,
@@ -57,10 +57,10 @@ $ composer require yzh52521/think-filesystem
     'read_from_cdn'   => false,
 ]
 'obs'=>[
-     'type' =>'obs',
-     'root' => '',
-     'key' => env('OBS_KEY'),
-     'secret' => env('OBS_SECRET'),
+      'type' =>'obs',
+      'root' => '',
+      'key' => env('OBS_KEY'),
+      'secret' => env('OBS_SECRET'),
       'bucket' => env('OBS_BUCKET'),
       'endpoint' => env('OBS_ENDPOINT'),
       'is_cname' => env('OBS_IS_CNAME', false),
