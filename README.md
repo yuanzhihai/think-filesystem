@@ -45,9 +45,9 @@ $ composer require yzh52521/think-filesystem
 'qcloud' => [
     'type'       => 'qcloud',
     'region'      => '***', //bucket 所属区域 英文
-    'appId'      => '***', // 域名中数字部分
-    'secretId'   => '***',
-    'secretKey'  => '***',
+    'app_id'      => '***', // 域名中数字部分
+    'secret_id'   => '***',
+    'secret_key'  => '***',
     'bucket'          => '***',
     'timeout'         => 60,
     'connect_timeout' => 60,
@@ -62,8 +62,8 @@ $ composer require yzh52521/think-filesystem
      'bucket'     => 'OBS_BUCKET', //OBS bucket name
      'endpoint'   => 'OBS_ENDPOINT',
      'cdn_domain' => 'OBS_CDN_DOMAIN',
-     'ssl_verify' => 'OBS_SSL_VERIFY',
-     'debug'      => 'APP_DEBUG',
+     'ssl_verify' => 'OBS_SSL_VERIFY',//true or false...
+     'debug'      => 'APP_DEBUG',//true or false...
 ],
 's3'=>[
       'type'       => 's3',
