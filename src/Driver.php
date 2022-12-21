@@ -11,6 +11,8 @@ use League\Flysystem\Ftp\FtpAdapter;
 use League\Flysystem\Local\LocalFilesystemAdapter;
 use League\Flysystem\PathPrefixer;
 use League\Flysystem\PhpseclibV3\SftpAdapter;
+use League\Flysystem\ReadOnly\ReadOnlyFilesystemAdapter;
+use League\Flysystem\PathPrefixing\PathPrefixedAdapter;
 use League\Flysystem\StorageAttributes;
 use League\Flysystem\UnableToCopyFile;
 use League\Flysystem\UnableToCreateDirectory;
@@ -85,6 +87,14 @@ abstract class Driver
      */
     protected function createFilesystem(FilesystemAdapter $adapter,array $config)
     {
+        if ($config['read-only'] ?? false === true) {
+            $adapter = new ReadOnlyFilesystemAdapter($adapter);
+        }
+
+        if (! empty($config['prefix'])) {
+            $adapter = new PathPrefixedAdapter($adapter, $config['prefix']);
+        }
+
         return new Filesystem( $adapter,Arr::only( $config,[
             'directory_visibility',
             'disable_asserts',

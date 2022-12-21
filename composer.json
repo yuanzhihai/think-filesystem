@@ -14,7 +14,9 @@
         "league/flysystem-sftp-v3": "^3.0",
         "league/flysystem-ftp": "^3.0",
         "league/flysystem-google-cloud-storage":"^3.0",
-        "voku/portable-ascii": "^1.6.1"
+        "voku/portable-ascii": "^1.6.1",
+        "league/flysystem-path-prefixing": "^3.3",
+        "league/flysystem-read-only": "^3.3"
     },
     "require-dev": {
         "symfony/http-foundation": "^6.0"
