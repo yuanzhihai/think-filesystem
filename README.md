@@ -96,7 +96,7 @@ $ composer require yzh52521/think-filesystem
     // 'passive' => true,
     // 'ssl' => true,
     // 'timeout' => 30,
-    'url'=>''
+    // 'url'=>''
 ],
 'sftp'=>[
     'type' =>'sftp',
