@@ -1,5 +1,5 @@
 <h1><p align="center">think-filesystem</p></h1>
-<p align="center"> thinkphp6.1 的文件系统扩展包，支持上传阿里云OSS和七牛和腾讯云COS和华为云OBS和awsS3</p>
+<p align="center"> thinkphp6.1+ 的文件系统扩展包，支持上传阿里云OSS和七牛和腾讯云COS和华为云OBS和awsS3</p>
 
 ## 包含
 
