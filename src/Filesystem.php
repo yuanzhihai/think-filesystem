@@ -31,12 +31,12 @@ class Filesystem extends Manager
     }
 
 
-    protected function resolveType(string $name): array
+    protected function resolveType(string $name)
     {
         return $this->getDiskConfig( $name,'type','local' );
     }
 
-    protected function resolveConfig(string $name): array
+    protected function resolveConfig(string $name)
     {
         return $this->getDiskConfig( $name );
     }
@@ -48,7 +48,7 @@ class Filesystem extends Manager
      * @param mixed $default 默认值
      * @return mixed
      */
-    public function getConfig(string $name = null,$default = null): mixed
+    public function getConfig(string $name = null,$default = null)
     {
         if (!is_null( $name )) {
             return $this->app->config->get( 'filesystem.'.$name,$default );
@@ -64,7 +64,7 @@ class Filesystem extends Manager
      * @param null $default
      * @return array
      */
-    public function getDiskConfig($disk,$name = null,$default = null): array
+    public function getDiskConfig($disk,$name = null,$default = null)
     {
         if ($config = $this->getConfig( "disks.{$disk}" )) {
             return Arr::get( $config,$name,$default );
