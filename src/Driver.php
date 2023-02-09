@@ -41,26 +41,26 @@ abstract class Driver
 {
 
     /** @var Cache */
-    protected $cache;
+    protected Cache $cache;
 
     /** @var Filesystem */
-    protected $filesystem;
+    protected Filesystem $filesystem;
 
 
-    protected $adapter;
+    protected FilesystemAdapter $adapter;
 
     /**
      * The Flysystem PathPrefixer instance.
      *
      * @var PathPrefixer
      */
-    protected $prefixer;
+    protected PathPrefixer $prefixer;
 
     /**
      * 配置参数
      * @var array
      */
-    protected $config = [];
+    protected array $config = [];
 
     public function __construct(Cache $cache,array $config)
     {
@@ -74,7 +74,7 @@ abstract class Driver
             $this->prefixer = new PathPrefixer( $this->prefixer->prefixPath( $config['prefix'] ),$separator );
         }
 
-        $this->adapter          = $this->createAdapter();
+        $this->adapter    = $this->createAdapter();
         $this->filesystem = $this->createFilesystem( $this->adapter,$this->config );
     }
 
@@ -85,14 +85,14 @@ abstract class Driver
      * @param array $config
      * @return Filesystem
      */
-    protected function createFilesystem(FilesystemAdapter $adapter,array $config)
+    protected function createFilesystem(FilesystemAdapter $adapter,array $config): Filesystem
     {
         if ($config['read-only'] ?? false === true) {
-            $adapter = new ReadOnlyFilesystemAdapter($adapter);
+            $adapter = new ReadOnlyFilesystemAdapter( $adapter );
         }
 
-        if (! empty($config['prefix'])) {
-            $adapter = new PathPrefixedAdapter($adapter, $config['prefix']);
+        if (!empty( $config['prefix'] )) {
+            $adapter = new PathPrefixedAdapter( $adapter,$config['prefix'] );
         }
 
         return new Filesystem( $adapter,Arr::only( $config,[
@@ -114,7 +114,7 @@ abstract class Driver
         return $this->prefixer->prefixPath( $path );
     }
 
-    protected function concatPathToUrl($url,$path)
+    protected function concatPathToUrl($url,$path): string
     {
         return rtrim( $url,'/' ).'/'.ltrim( $path,'/' );
     }
@@ -125,7 +125,7 @@ abstract class Driver
      * @param string $path
      * @return bool
      */
-    public function exists($path): bool
+    public function exists(string $path): bool
     {
         return $this->filesystem->has( $path );
     }
@@ -136,7 +136,7 @@ abstract class Driver
      * @param string $path
      * @return bool
      */
-    public function missing($path): bool
+    public function missing(string $path): bool
     {
         return !$this->exists( $path );
     }
@@ -146,8 +146,9 @@ abstract class Driver
      *
      * @param string $path
      * @return bool
+     * @throws FilesystemException
      */
-    public function fileExists($path): bool
+    public function fileExists(string $path): bool
     {
         return $this->filesystem->fileExists( $path );
     }
@@ -157,8 +158,9 @@ abstract class Driver
      *
      * @param string $path
      * @return bool
+     * @throws FilesystemException
      */
-    public function fileMissing($path): bool
+    public function fileMissing(string $path): bool
     {
         return !$this->fileExists( $path );
     }
@@ -168,8 +170,9 @@ abstract class Driver
      *
      * @param string $path
      * @return bool
+     * @throws FilesystemException
      */
-    public function directoryExists($path)
+    public function directoryExists(string $path): bool
     {
         return $this->filesystem->directoryExists( $path );
     }
@@ -179,8 +182,9 @@ abstract class Driver
      *
      * @param string $path
      * @return bool
+     * @throws FilesystemException
      */
-    public function directoryMissing($path)
+    public function directoryMissing(string $path): bool
     {
         return !$this->directoryExists( $path );
     }
@@ -189,9 +193,11 @@ abstract class Driver
      * Get the contents of a file.
      *
      * @param string $path
-     * @return string|null
+     * @return string|void
+     * @throws FilesystemException
+     * @throws \Throwable
      */
-    public function get($path)
+    public function get(string $path)
     {
         try {
             return $this->filesystem->read( $path );
@@ -207,9 +213,11 @@ abstract class Driver
      * @param string|null $name
      * @param array $headers
      * @param string|null $disposition
-     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     * @return StreamedResponse
+     * @throws FilesystemException
+     * @throws \Throwable
      */
-    public function response($path,$name = null,array $headers = [],$disposition = 'inline')
+    public function response(string $path,string $name = null,array $headers = [],?string $disposition = 'inline'): StreamedResponse
     {
         $response = new StreamedResponse;
 
@@ -245,11 +253,14 @@ abstract class Driver
     /**
      * Create a streamed download response for a given file.
      *
-     * @param string $path
+     * @param $path
      * @param string|null $name
-     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     * @param array $headers
+     * @return StreamedResponse
+     * @throws FilesystemException
+     * @throws \Throwable
      */
-    public function download($path,$name = null,array $headers = [])
+    public function download($path,string $name = null,array $headers = []): StreamedResponse
     {
         return $this->response( $path,$name,$headers,'attachment' );
     }
@@ -260,17 +271,19 @@ abstract class Driver
      * @param string $name
      * @return string
      */
-    protected function fallbackName($name)
+    protected function fallbackName(string $name): string
     {
         return str_replace( '%','',ASCII::to_ascii( $name,'en' ) );
     }
+
     /**
      * Get the visibility for the given path.
      *
      * @param string $path
      * @return string
+     * @throws FilesystemException
      */
-    public function getVisibility($path)
+    public function getVisibility(string $path): string
     {
         if ($this->filesystem->visibility( $path ) == Visibility::PUBLIC) {
             return 'public';
@@ -285,8 +298,10 @@ abstract class Driver
      * @param string $path
      * @param string $visibility
      * @return bool
+     * @throws FilesystemException
+     * @throws \Throwable
      */
-    public function setVisibility($path,$visibility)
+    public function setVisibility(string $path,string $visibility): bool
     {
         try {
             $this->filesystem->setVisibility( $path,$visibility );
@@ -305,9 +320,9 @@ abstract class Driver
      * @param string $path
      * @param string $data
      * @param string $separator
-     * @return bool
+     * @return bool|string
      */
-    public function prepend($path,$data,$separator = PHP_EOL)
+    public function prepend(string $path,string $data,string $separator = PHP_EOL): bool|string
     {
         if ($this->fileExists( $path )) {
             return $this->put( $path,$data.$separator.$this->get( $path ) );
@@ -322,9 +337,11 @@ abstract class Driver
      * @param string $path
      * @param string $data
      * @param string $separator
-     * @return bool
+     * @return bool|string
+     * @throws FilesystemException
+     * @throws \Throwable
      */
-    public function append($path,$data,$separator = PHP_EOL)
+    public function append(string $path,string $data,string $separator = PHP_EOL): bool|string
     {
         if ($this->fileExists( $path )) {
             return $this->put( $path,$this->get( $path ).$separator.$data );
@@ -337,10 +354,12 @@ abstract class Driver
     /**
      * Delete the file at a given path.
      *
-     * @param string|array $paths
+     * @param array|string $paths
      * @return bool
+     * @throws FilesystemException
+     * @throws \Throwable
      */
-    public function delete($paths)
+    public function delete(array|string $paths): bool
     {
         $paths = is_array( $paths ) ? $paths : func_get_args();
 
@@ -365,8 +384,10 @@ abstract class Driver
      * @param string $from
      * @param string $to
      * @return bool
+     * @throws FilesystemException
+     * @throws \Throwable
      */
-    public function copy($from,$to)
+    public function copy(string $from,string $to): bool
     {
         try {
             $this->filesystem->copy( $from,$to );
@@ -385,8 +406,10 @@ abstract class Driver
      * @param string $from
      * @param string $to
      * @return bool
+     * @throws FilesystemException
+     * @throws \Throwable
      */
-    public function move($from,$to)
+    public function move(string $from,string $to): bool
     {
         try {
             $this->filesystem->move( $from,$to );
@@ -406,7 +429,7 @@ abstract class Driver
      * @return int
      * @throws FilesystemException
      */
-    public function size($path)
+    public function size(string $path): int
     {
         return $this->filesystem->fileSize( $path );
     }
@@ -414,10 +437,12 @@ abstract class Driver
     /**
      * Get the mime-type of a given file.
      *
-     * @param string $path
-     * @return string|false
+     * @param $path
+     * @return bool|string
+     * @throws FilesystemException
+     * @throws \Throwable
      */
-    public function mimeType($path)
+    public function mimeType($path): bool|string
     {
         try {
             return $this->filesystem->mimeType( $path );
@@ -433,8 +458,9 @@ abstract class Driver
      *
      * @param string $path
      * @return int
+     * @throws FilesystemException
      */
-    public function lastModified($path): int
+    public function lastModified(string $path): int
     {
         return $this->filesystem->lastModified( $path );
     }
@@ -442,8 +468,12 @@ abstract class Driver
 
     /**
      * {@inheritdoc}
+     * @param string $path
+     * @return resource|void
+     * @throws FilesystemException
+     * @throws \Throwable
      */
-    public function readStream($path)
+    public function readStream(string $path)
     {
         try {
             return $this->filesystem->readStream( $path );
@@ -454,8 +484,10 @@ abstract class Driver
 
     /**
      * {@inheritdoc}
+     * @return bool
+     * @throws FilesystemException
      */
-    public function writeStream($path,$resource,array $options = [])
+    public function writeStream(string $path,string $resource,array $options = []): bool
     {
         try {
             $this->filesystem->writeStream( $path,$resource,$options );
@@ -501,7 +533,7 @@ abstract class Driver
      * @param string $path
      * @return string
      */
-    protected function getFtpUrl($path)
+    protected function getFtpUrl(string $path): string
     {
         return isset( $this->config['url'] )
             ? $this->concatPathToUrl( $this->config['url'],$path )
@@ -511,11 +543,11 @@ abstract class Driver
     /**
      * Replace the scheme, host and port of the given UriInterface with values from the given URL.
      *
-     * @param \Psr\Http\Message\UriInterface $uri
+     * @param $uri
      * @param string $url
-     * @return \Psr\Http\Message\UriInterface
+     * @return mixed
      */
-    protected function replaceBaseUrl($uri,$url)
+    protected function replaceBaseUrl($uri,string $url): mixed
     {
         $parsed = parse_url( $url );
 
@@ -527,10 +559,9 @@ abstract class Driver
 
     /**
      * Get the Flysystem driver.
-     *
-     * @return \League\Flysystem\FilesystemOperator
+     * @return Filesystem|\League\Flysystem\FilesystemOperator
      */
-    public function getDriver()
+    public function getDriver(): Filesystem|\League\Flysystem\FilesystemOperator
     {
         return $this->filesystem;
     }
@@ -540,7 +571,7 @@ abstract class Driver
      *
      * @return \League\Flysystem\FilesystemAdapter
      */
-    public function getAdapter()
+    public function getAdapter(): FilesystemAdapter
     {
         return $this->adapter;
     }
@@ -548,12 +579,12 @@ abstract class Driver
     /**
      * 保存文件
      * @param string $path 路径
-     * @param File|string $file 文件
-     * @param null|string|\Closure $rule 文件名规则
+     * @param string|File $file 文件
+     * @param string|\Closure|null $rule 文件名规则
      * @param array $options 参数
      * @return bool|string
      */
-    public function putFile(string $path,$file,$rule = null,array $options = [])
+    public function putFile(string $path,File|string $file,string|\Closure $rule = null,array $options = []): bool|string
     {
         $file = is_string( $file ) ? new File( $file ) : $file;
         return $this->putFileAs( $path,$file,$file->hashName( $rule ),$options );
@@ -567,7 +598,7 @@ abstract class Driver
      * @param array $options 参数
      * @return bool|string
      */
-    public function putFileAs(string $path,File $file,string $name,array $options = [])
+    public function putFileAs(string $path,File $file,string $name,array $options = []): bool|string
     {
         $stream = fopen( $file->getRealPath(),'r' );
         $path   = trim( $path.'/'.$name,'/' );
@@ -581,7 +612,8 @@ abstract class Driver
         return $result ? $path : false;
     }
 
-    public function put($path,$contents,$options = [])
+
+    public function put($path,$contents,$options = []): bool|string
     {
         $options = is_string( $options )
             ? ['visibility' => $options]
@@ -620,8 +652,9 @@ abstract class Driver
      * @param string|null $directory
      * @param bool $recursive
      * @return array
+     * @throws FilesystemException
      */
-    public function files($directory = null,$recursive = false)
+    public function files(string $directory = null,bool $recursive = false): array
     {
         return $this->filesystem->listContents( $directory ?? '',$recursive )
             ->filter( function (StorageAttributes $attributes) {
@@ -640,19 +673,19 @@ abstract class Driver
      * @param string|null $directory
      * @return array
      */
-    public function allFiles($directory = null)
+    public function allFiles(string $directory = null): array
     {
         return $this->files( $directory,true );
     }
 
     /**
-     * Get all of the directories within a given directory.
+     * Get all the directories within a given directory.
      *
      * @param string|null $directory
      * @param bool $recursive
      * @return array
      */
-    public function directories($directory = null,$recursive = false)
+    public function directories(string $directory = null,bool $recursive = false): array
     {
         return $this->filesystem->listContents( $directory ?? '',$recursive )
             ->filter( function (StorageAttributes $attributes) {
@@ -670,7 +703,7 @@ abstract class Driver
      * @param string|null $directory
      * @return array
      */
-    public function allDirectories($directory = null)
+    public function allDirectories(string $directory = null): array
     {
         return $this->directories( $directory,true );
     }
@@ -681,7 +714,7 @@ abstract class Driver
      * @param string $path
      * @return bool
      */
-    public function makeDirectory($path)
+    public function makeDirectory(string $path): bool
     {
         try {
             $this->filesystem->createDirectory( $path );
@@ -700,7 +733,7 @@ abstract class Driver
      * @param string $directory
      * @return bool
      */
-    public function deleteDirectory($directory)
+    public function deleteDirectory(string $directory): bool
     {
         try {
             $this->filesystem->deleteDirectory( $directory );

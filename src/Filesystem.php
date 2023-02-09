@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare( strict_types = 1 );
 
 namespace yzh52521\filesystem;
 
@@ -18,7 +18,7 @@ class Filesystem extends Manager
      */
     public function disk(string $name = null): Driver
     {
-        return $this->driver($name);
+        return $this->driver( $name );
     }
 
     /**
@@ -27,18 +27,18 @@ class Filesystem extends Manager
      */
     public function cloud(string $name = null): Driver
     {
-        return $this->driver($name);
+        return $this->driver( $name );
     }
 
 
-    protected function resolveType(string $name)
+    protected function resolveType(string $name): array
     {
-        return $this->getDiskConfig($name, 'type', 'local');
+        return $this->getDiskConfig( $name,'type','local' );
     }
 
-    protected function resolveConfig(string $name)
+    protected function resolveConfig(string $name): array
     {
-        return $this->getDiskConfig($name);
+        return $this->getDiskConfig( $name );
     }
 
     /**
@@ -48,13 +48,13 @@ class Filesystem extends Manager
      * @param mixed $default 默认值
      * @return mixed
      */
-    public function getConfig(string $name = null, $default = null)
+    public function getConfig(string $name = null,$default = null): mixed
     {
-        if (!is_null($name)) {
-            return $this->app->config->get('filesystem.' . $name, $default);
+        if (!is_null( $name )) {
+            return $this->app->config->get( 'filesystem.'.$name,$default );
         }
 
-        return $this->app->config->get('filesystem');
+        return $this->app->config->get( 'filesystem' );
     }
 
     /**
@@ -64,13 +64,13 @@ class Filesystem extends Manager
      * @param null $default
      * @return array
      */
-    public function getDiskConfig($disk, $name = null, $default = null)
+    public function getDiskConfig($disk,$name = null,$default = null): array
     {
-        if ($config = $this->getConfig("disks.{$disk}")) {
-            return Arr::get($config, $name, $default);
+        if ($config = $this->getConfig( "disks.{$disk}" )) {
+            return Arr::get( $config,$name,$default );
         }
 
-        throw new InvalidArgumentException("Disk [$disk] not found.");
+        throw new InvalidArgumentException( "Disk [$disk] not found." );
     }
 
     /**
@@ -79,7 +79,7 @@ class Filesystem extends Manager
      */
     public function getDefaultDriver()
     {
-        return $this->getConfig('default');
+        return $this->getConfig( 'default' );
     }
 
     /**
@@ -88,8 +88,8 @@ class Filesystem extends Manager
      * @param array $parameters
      * @return mixed
      */
-    public function __call($method, $parameters)
+    public function __call($method,$parameters)
     {
-        return $this->driver()->$method(...$parameters);
+        return $this->driver()->$method( ...$parameters );
     }
 }
