@@ -4,7 +4,7 @@
     "type": "library",
     "require": {
         "php": ">=8.0.2",
-        "topthink/framework": "^6.1||^8.0",
+        "topthink/framework": ">=6.0",
         "league/flysystem": "^3.0",
         "yzh52521/flysystem-oss": "^3.0",
         "overtrue/flysystem-qiniu": "^3.0",

@@ -15,7 +15,7 @@ class Local extends Driver
      * 配置参数
      * @var array
      */
-    protected array $config = [
+    protected $config = [
         'root' => '',
     ];
 
