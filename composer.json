@@ -3,7 +3,7 @@
     "description": "thinkphp6.1 for filesystem,include Aliyun and Qiniu COS OBS ",
     "type": "library",
     "require": {
-        "php": ">=8.0.2",
+        "php": "^8.0.2",
         "topthink/framework": ">=6.0",
         "league/flysystem": "^3.0",
         "yzh52521/flysystem-oss": "^3.0",
