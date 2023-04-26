@@ -268,7 +268,6 @@ Filesystem::delete(['file.jpg', 'file2.jpg']);
 ```
 如果需要，你可以指定应从哪个磁盘删除文件。
 ```php
-
 Filesystem::disk('s3')->delete('path/file.jpg');
 ```
  ## 目录
@@ -282,9 +281,9 @@ $files = Filesystem::allFiles($directory);
 ### 获取特定目录下的子目录
 <code>directories</code> 方法以数组的形式返回给定目录中的所有目录。此外，你还可以使用
 <code>allDirectories</coce> 方法递归地获取给定目录中的所有目录及其子目录中的目录：
+
 ```php
 $directories = Filesystem::directories($directory);
-
 $directories = Filesystem::allDirectories($directory);
 ```
 ### 创建目录
@@ -302,7 +301,6 @@ Filesystem::deleteDirectory($directory);
 你可以在 服务提供者 中注册一个带有 boot 方法的驱动。在提供者的 boot 方法中，你可以使用 Filesystem 门面的 extend 方法来定义一个自定义驱动：
 
 ```php
-
 use League\Flysystem\Filesystem;
 use Spatie\Dropbox\Client as DropboxClient;
 use Spatie\FlysystemDropbox\DropboxAdapter;
