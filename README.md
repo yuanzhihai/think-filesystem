@@ -275,7 +275,6 @@ Filesystem::disk('s3')->delete('path/file.jpg');
 <code>files</code> 将以数组的形式返回给定目录下所有的文件。如果你想要检索给定目录的所有文件及其子目录的所有文件，你可以使用 <code>allFiles</code> 方法：
 ```php
 $files = Filesystem::files($directory);
-
 $files = Filesystem::allFiles($directory);
 ```
 ### 获取特定目录下的子目录
@@ -293,6 +292,7 @@ Filesystem::makeDirectory($directory);
 ```
 ### 删除一个目录
 最后，<code>deleteDirectory</code> 方法可用于删除一个目录及其下所有的文件：
+
 ```php
 Filesystem::deleteDirectory($directory);
 ```
