@@ -177,7 +177,6 @@ return Filesystem::download('file.jpg', $name, $headers);
 ```php
 $url = Filesystem::url('file.jpg');
 ```
-
 ## 文件元数据
 除了读写文件，还可以提供有关文件本身的信息。例如，<code>size</code> 方法可用于获取文件大小（以字节为单位）：
 
