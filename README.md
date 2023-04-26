@@ -172,8 +172,8 @@ return Filesystem::download('file.jpg');
 return Filesystem::download('file.jpg', $name, $headers);
 ```
 ## 文件 URL
-你可以使用 <code>url<code> 方法来获取给定文件的 URL。如果你使用的是 <code>local</code> 驱动，这通常只会在给定路径前加上 /storage，并返回一个相对 URL 到文件。如果你使用的是 <code>local</code> 驱动，将返回完全限定的远程 URL：
 
+你可以使用 <code>url</code> 方法来获取给定文件的 URL。如果你使用的是 local 驱动，这通常只会在给定路径前加上 /storage，并返回一个相对 URL 到文件。如果你使用的是 local 驱动，将返回完全限定的远程 URL：
 ```php
 $url = Filesystem::url('file.jpg');
 ```
