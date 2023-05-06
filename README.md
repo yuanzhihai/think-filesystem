@@ -77,7 +77,7 @@ $ composer require yzh52521/think-filesystem
       'bucket_endpoint'         => false,
       'use_path_style_endpoint' => false,
       'endpoint'                => 'S3_ENDPOINT',
-      'bucket_name'             => 'S3_BUCKET',
+      'bucket'                 => 'S3_BUCKET',
 ],
 'google'=>[
     'type' =>'google',
