@@ -21,9 +21,6 @@ class S3 extends Driver
             $config['visibility'] ?? Visibility::PUBLIC
         );
         $streamReads = $this->config['stream_reads'] ?? false;
-        return new AwsS3V3Adapter(
-            $client,
-            $this->config['bucket'],$root, $visibility, null, $config['options'] ?? [], $streamReads
-        );
+        return new AwsS3V3Adapter( $client,$this->config['bucket'],$root, $visibility, null, $config['options'] ?? [], $streamReads );
     }
 }
