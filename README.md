@@ -34,15 +34,13 @@ $ composer require yzh52521/think-filesystem
     'accessSecret' => '******',
     'bucket'       => 'bucket',
     'endpoint'     => 'oss-cn-hongkong.aliyuncs.com',
-    'url'          => 'http://oss-cn-hongkong.aliyuncs.com',
-    'isCName'       => '',
-          'prefix'        => '',
-           'options'       => [
-                    'url'             => '',
-                    'endpoint'        => '',
-                    'bucket_endpoint' => '',
-                    'temporary_url'   => '',
-          ],
+    'isCName'       => true,
+    'cndUrl'=>'',
+    'prefix'        => '',
+    'options'       => [
+          'endpoint'        => '',
+          'bucket_endpoint' => '',
+     ],
 ],
 'qiniu'  => [
     'type'      => 'qiniu',
