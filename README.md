@@ -35,7 +35,7 @@ $ composer require yzh52521/think-filesystem
     'bucket'       => 'bucket',
     'endpoint'     => 'oss-cn-hongkong.aliyuncs.com',
     'isCName'       => true,
-    'cndUrl'=>'',
+    'cdnUrl'=>'',
     'prefix'        => '',
     'options'       => [
           'endpoint'        => '',
