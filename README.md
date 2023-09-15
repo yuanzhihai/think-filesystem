@@ -30,8 +30,8 @@ $ composer require yzh52521/think-filesystem
 ```
 'aliyun' => [
     'type'         => 'aliyun',
-    'accessId'     => '******',
-    'accessSecret' => '******',
+    'access_id'     => '******',
+    'access_secret' => '******',
     'bucket'       => 'bucket',
     'endpoint'     => 'oss-cn-hongkong.aliyuncs.com',
     'isCName'       => true,
