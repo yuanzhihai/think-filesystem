@@ -12,7 +12,7 @@ class Google extends Driver
     protected function createAdapter()
     {
         $storageClient = new StorageClient( [
-            'projectId' => $this->config['projectId'],
+            'projectId' => $this->config['project_id'],
         ] );
         $bucket        = $storageClient->bucket( $this->config['bucket'] );
 

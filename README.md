@@ -87,7 +87,7 @@ $ composer require yzh52521/think-filesystem
 ],
 'google'=>[
     'type' =>'google',
-    'projectId' => 'GOOGLE_PROJECT_ID',//your-project-id
+    'project_id' => 'GOOGLE_PROJECT_ID',//your-project-id
     'bucket' => 'GOOGLE_BUCKET', //your-bucket-name
     'prefix' => '', //optional-prefix 
 ],

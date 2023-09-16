@@ -13,7 +13,7 @@ class Qiniu extends Driver
     protected function createAdapter()
     {
         return new QiniuAdapter(
-            $this->config['accessKey'], $this->config['secretKey'],
+            $this->config['access_key'], $this->config['secret_key'],
             $this->config['bucket'], $this->config['domain']
         );
     }
